@@ -18,7 +18,7 @@ main img {
     height: auto;
     border: 1px solid black;
     padding: 2px;
-    box-shadow: 0 0 30px gray;
+    box-shadow: 0 0 30px #eee;
 }
 
 p {
@@ -30,7 +30,7 @@ aside {
     margin: 1em;
     border: 1px solid rgba(0, 0, 0.2);
     padding: 1em;
-    background-color: #333;
+    background-color: #eee;
     text-align: center;
 }
 
