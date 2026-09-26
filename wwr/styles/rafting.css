@@ -108,7 +108,8 @@ header nav a:last-child {
 }
 
 header nav a:hover {
-    background-color: var(--accent2-color);
+    background-color: var(--secondary-color);
+    color: white;
 }
 
 /* =========================
