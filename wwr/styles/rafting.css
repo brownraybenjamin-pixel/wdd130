@@ -326,3 +326,213 @@ footer p {
 .socialmedia img:hover {
     opacity: 0.7;
 }
+
+/* =========================
+   CONTACT PAGE
+   ========================= */
+
+/* Contact Heading */
+
+.contact-heading {
+    text-align: center;
+    padding: 25px;
+    margin-bottom: 20px;
+    background-color: var(--accent2-color);
+}
+
+.contact-heading h1 {
+    margin-bottom: 10px;
+}
+
+.contact-heading p {
+    line-height: 1.5;
+}
+
+/* =========================
+   COMPANY INFORMATION
+   ========================= */
+
+.contact-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    align-items: center;
+
+    padding: 20px;
+    margin-bottom: 20px;
+
+    background-color: var(--accent2-color);
+}
+
+.company-info h2 {
+    margin-bottom: 15px;
+}
+
+.company-info p {
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+/* Google Map */
+
+.map iframe {
+    display: block;
+    width: 100%;
+    height: 250px;
+
+    border: 2px solid var(--primary-color);
+}
+
+/* =========================
+   EMPLOYEE PROFILES
+   ========================= */
+
+.employees {
+    padding: 20px;
+    margin-bottom: 20px;
+
+    text-align: center;
+
+    background-color: var(--accent2-color);
+}
+
+.employees h2 {
+    margin-bottom: 20px;
+}
+
+.employee-container {
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+}
+
+.employee-container figure {
+    flex: 1;
+}
+
+.employee-container img {
+    width: 180px;
+    height: 180px;
+
+    object-fit: cover;
+
+    border: 3px solid var(--primary-color);
+}
+
+.employee-container figcaption {
+    margin-top: 10px;
+    line-height: 1.5;
+}
+
+/* =========================
+   CONTACT FORM
+   ========================= */
+
+.contact-form {
+    padding: 25px;
+    margin-bottom: 20px;
+
+    background-color: var(--accent2-color);
+}
+
+.contact-form h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.contact-form form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-item {
+    display: flex;
+    flex-direction: column;
+
+    margin-bottom: 18px;
+}
+
+.form-item label {
+    margin-bottom: 6px;
+
+    font-weight: bold;
+}
+
+.form-item input,
+.form-item textarea {
+    padding: 10px;
+
+    font-family: var(--body-font);
+    font-size: 16px;
+
+    border: 1px solid #777777;
+}
+
+.form-item textarea {
+    resize: vertical;
+}
+
+/* =========================
+   RADIO BUTTONS
+   ========================= */
+
+fieldset {
+    padding: 15px;
+    margin-bottom: 18px;
+
+    border: 1px solid var(--primary-color);
+}
+
+legend {
+    padding: 0 8px;
+
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+    margin: 10px 0;
+}
+
+/* =========================
+   NEWSLETTER CHECKBOX
+   ========================= */
+
+.newsletter {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+/* =========================
+   SUBMIT BUTTON
+   ========================= */
+
+.contact-form button {
+    display: block;
+
+    width: 100%;
+
+    padding: 12px;
+
+    border: none;
+
+    background-color: var(--primary-color);
+    color: white;
+
+    font-family: var(--body-font);
+    font-size: 17px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.contact-form button:hover {
+    background-color: var(--secondary-color);
+}

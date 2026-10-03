@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Contact Us | Rapid River Adventures</title>
+
+    <meta name="description"
+      content="Contact Rapid River Adventures with questions about rafting trips, reservations, or our website. Meet our team and send us a message.">
+
+    <meta name="author" content="Benjamin Brown">
+
+    <link rel="stylesheet" href="styles/rafting.css">
+</head>
+
+<body>
+
+    <header>
+        <img src="images/z_downriver.png" alt="Rapid River Adventures company logo">
+
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="about.html">About Us</a>
+            <a href="trips.html">Trips</a>
+            <a href="contact.html">Contact Us</a>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- Contact Page Heading -->
+        <section class="contact-heading">
+            <h1>Contact Rapid River Adventures</h1>
+            <p>
+                Have questions about one of our rafting adventures?
+                Contact our team and we will be happy to help you plan
+                your next trip.
+            </p>
+        </section>
+
+        <!-- Company Information and Map -->
+        <section class="contact-info">
+
+            <div class="company-info">
+                <h2>Get in Touch</h2>
+
+                <p>
+                    <strong>Address:</strong><br>
+                    123 River Road<br>
+                    Mesa, Arizona 85201
+                </p>
+
+                <p>
+                    <strong>Phone:</strong><br>
+                    (480) 555-0123
+                </p>
+
+                <p>
+                    <strong>Email:</strong><br>
+                    info@rapidriveradventures.com
+                </p>
+            </div>
+
+            <div class="map">
+                <iframe src="https://www.google.com/maps?q=Mesa,+Arizona&output=embed" width="400"
+                  height="250" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                  title="Map showing Rapid River Adventures location">
+                </iframe>
+            </div>
+
+        </section>
+
+        <!-- Employee Profiles -->
+        <section class="employees">
+
+            <h2>Meet Our Team</h2>
+
+            <div class="employee-container">
+
+                <figure>
+                    <img src="images/employee1.jpg" alt="Rapid River Adventures lead rafting guide">
+                    <figcaption>
+                        <strong>Jake Thompson</strong><br>
+                        Lead Rafting Guide
+                    </figcaption>
+                </figure>
+
+                <figure>
+                    <img src="images/employee2.jpg"
+                      alt="Rapid River Adventures reservation specialist">
+                    <figcaption>
+                        <strong>Sarah Martinez</strong><br>
+                        Reservation Specialist
+                    </figcaption>
+                </figure>
+
+                <figure>
+                    <img src="images/employee3.jpg" alt="Rapid River Adventures operations manager">
+                    <figcaption>
+                        <strong>Michael Carter</strong><br>
+                        Operations Manager
+                    </figcaption>
+                </figure>
+
+            </div>
+
+        </section>
+
+        <!-- Contact Form -->
+        <section class="contact-form">
+
+            <h2>Send Us a Message</h2>
+
+            <form>
+
+                <!-- Name -->
+                <div class="form-item">
+                    <label for="fullname">Full Name:</label>
+                    <input type="text" id="fullname" name="fullname" required>
+                </div>
+
+                <!-- Email -->
+                <div class="form-item">
+                    <label for="email">Email Address:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <!-- Purpose -->
+                <fieldset>
+
+                    <legend>Purpose of Message</legend>
+
+                    <div class="radio-option">
+                        <input type="radio" id="general" name="purpose" value="general" required>
+                        <label for="general">General Inquiry</label>
+                    </div>
+
+                    <div class="radio-option">
+                        <input type="radio" id="reservation" name="purpose" value="reservation">
+                        <label for="reservation">Reservation Question</label>
+                    </div>
+
+                    <div class="radio-option">
+                        <input type="radio" id="suggestion" name="purpose" value="suggestion">
+                        <label for="suggestion">Website Suggestion</label>
+                    </div>
+
+                </fieldset>
+
+                <!-- Message -->
+                <div class="form-item">
+                    <label for="message">Message:</label>
+                    <textarea id="message" name="message" rows="6" required></textarea>
+                </div>
+
+                <!-- Newsletter -->
+                <div class="newsletter">
+                    <input type="checkbox" id="newsletter" name="newsletter">
+
+                    <label for="newsletter">
+                        Please subscribe me to the monthly newsletter
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit">Send Message</button>
+
+            </form>
+
+        </section>
+
+    </main>
+
+    <footer>
+
+        <p>&copy; 2026 | Rapid River Adventures | Benjamin Brown</p>
+
+        <nav class="socialmedia">
+
+            <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer">
+                <img src="images/facebook.png" alt="Facebook">
+            </a>
+
+            <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer">
+                <img src="images/insatgram.png" alt="Instagram">
+            </a>
+
+            <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer">
+                <img src="images/linkedin.png" alt="LinkedIn">
+            </a>
+
+        </nav>
+
+    </footer>
+
+</body>
+
+</html>
