@@ -1,0 +1,53 @@
+﻿//
+// manage the functionality to show/hide the right panel, TICD/QuickTours
+// 
+function RightPanelManager(elementId, resizeFunction) {
+
+    this.OPEN_TICD_BTN_A11Y = window['lstrTICD_OpenButton_A11y'];
+    this.CLOSE_TICD_BTN_A11Y = window['lstrTICD_OpenButton_A11y'];
+
+    this.controller = $(getCachedElement("toggleRight"));
+    this.rightContainer = $(getCachedElement("containerRight"));
+
+    this.rootElement = $(getCachedElement(elementId));
+    this.resize = resizeFunction;
+
+    var buttonAriaLabel = !this.controller.hasClass("right") ? this.OPEN_TICD_BTN_A11Y : this.CLOSE_TICD_BTN_A11Y;
+    
+    this.controller.attr("aria-label", buttonAriaLabel);
+}
+
+// call service to update user page preferences
+RightPanelManager.prototype.updatePagePreference = function (pageId, value) {
+    $.usService("CommonService", "SetPageRightContentPreference", { "pageId": pageId, "value": value }, null);
+};
+
+// toggle display of right content
+RightPanelManager.prototype.toggleRightContent = function () {
+    if (this.controller.hasClass("right")) {
+        this.hideRightContent();
+        this.controller.attr("aria-label", this.OPEN_TICD_BTN_A11Y);
+    }
+    else {
+        this.showRightContent();
+        this.controller.attr("aria-label", this.CLOSE_TICD_BTN_A11Y);
+    }
+};
+
+// show right panel
+RightPanelManager.prototype.showRightContent = function () {
+    this.controller.addClass("right").removeClass("left");
+    this.rootElement.addClass("contentContainer").removeClass("contentContainerNoRight");
+    this.rightContainer.show();
+    this.resize();
+    this.updatePagePreference(window.location.pathname, false);
+};
+
+// hide right panel
+RightPanelManager.prototype.hideRightContent = function () {
+    this.controller.addClass("left").removeClass("right");
+    this.rootElement.addClass("contentContainerNoRight").removeClass("contentContainer");
+    this.rightContainer.hide();
+    this.resize();
+    this.updatePagePreference(window.location.pathname, true);
+};

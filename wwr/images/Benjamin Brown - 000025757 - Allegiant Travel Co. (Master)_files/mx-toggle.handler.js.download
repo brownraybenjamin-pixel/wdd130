@@ -1,0 +1,41 @@
+/**
+ * This event sets toggle data in window object of browser.
+ * @param event the event.data must contain type="set-master-toggle" and data={toggleId, enebled, active}
+ */
+// NOSONAR: Allowing all origins is intentional for this use case
+window.addEventListener('message', event => {
+  // Intentionally allowing all origins as per business requirement
+  const allowedOrigins = '*'; // Allow all origins
+  if (
+    event.data &&
+    event.data.type === 'set-master-toggle' &&
+    event.data.data &&
+    (allowedOrigins === '*' || event.origin)
+  ) {
+    const toggleData = event.data.data;
+    const masterToggles = window.masterToggles || {};
+    masterToggles[toggleData.toggleId] = {
+      enabled: toggleData.enabled,
+      active: toggleData.active
+    };
+    window.masterToggles = masterToggles;
+  }
+});
+
+/**
+ * This event gets toggle data from window object of browser.
+ * @param event the event.data must contain type="master-toggle" and id=<toggleId>
+ * calls another event in reply with type="master-toggle-reply" and data
+ */
+// sonar-ignore: S2811 -- Accepting messages from any origin is intentional
+window.addEventListener('message', event => {
+  if (event.data && event.data.type === 'master-toggle') {
+    event.source.postMessage(
+      {
+        type: 'master-toggle-reply',
+        data: window.masterToggles[event.data.id] // this could return undefined if toggle doesn't exist
+      },
+      event.origin
+    );
+  }
+});

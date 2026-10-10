@@ -1,0 +1,15 @@
+(function () {
+  const scriptTag = document.getElementById('web-vitals-client-loader');
+  const cdnUrl = 'https://ukg-wayfinding-prod.cdn.ultipro.com/web-vitals-collector/2.2.0/suitex-web-vitals-browser.js'
+  const config = {
+    apiEndpoint: 'https://wayfinding-hub-gateway-plas1.ultipro.com/telemetry/api/v1/web-vitals',
+    sessionSampleRate: 0.05,
+    platform: 'web',
+    version: '26.223.9131.16578',
+    ...scriptTag?.dataset
+  }
+
+import(cdnUrl).then((module) => {
+    module.default(config)
+  })
+})()

@@ -1,0 +1,343 @@
+﻿function USSessionTimeout() {
+}
+
+USSessionTimeout.LAST_UPDATE_KEY = "Session.lastUpdate";
+USSessionTimeout.TAB_ID_KEY = "Session.tabID";
+USSessionTimeout.PARTNER_CHECK_KEY = "Session.partnerChecked";
+USSessionTimeout.OriginalDuration = 120 * 1000;
+USSessionTimeout.TimeRemaining = USSessionTimeout.OriginalDuration;
+USSessionTimeout.WakeUpAndCheckInterval = 5 * 1000;
+USSessionTimeout.PingSessionInterval = 50 * 1000;
+USSessionTimeout.PingTimeRemaining = USSessionTimeout.PingSessionInterval;
+USSessionTimeout.WarningThreshold = 120 * 1000;
+USSessionTimeout.LastTimeActive = Date.now();
+USSessionTimeout.LastPingSessionCall = Date.now();
+USSessionTimeout.UserWarned = false;
+USSessionTimeout.KeepSessionAlive = false;
+USSessionTimeout.HasComplementaryPageInSession = false;
+USSessionTimeout.LastDispatch = Date.now();
+USSessionTimeout.DispatchDelay = 2 * 1000;
+USSessionTimeout.TabId = null;
+USSessionTimeout.BackdropFixEnabled = false; 
+
+var pingSessionCallback = function (response) {
+    if (response === "maxSessionAgeLimit")
+        windowMain().USSessionTimeout.shutDown(false);
+
+    checkMigrationStatus(response,true);
+};
+
+USSessionTimeout.pingSession = function (forceUpdate) {
+    var tabId = "0";
+    if (window.sessionStorage) {
+        tabId = sessionStorage.getItem(USSessionTimeout.TAB_ID_KEY);
+    }
+
+    $.usService("CommonService", "PingSession", { "tabId": tabId, "lastActiveTime": new Date(USSessionTimeout.LastTimeActive).toISOString(), "forceUpdate": forceUpdate }, pingSessionCallback);
+};
+
+USSessionTimeout.updateTimeout = function (clearSessionWarnings) {
+    var now = Date.now();
+
+    USSessionTimeout.TimeRemaining = USSessionTimeout.OriginalDuration;
+    USSessionTimeout.LastTimeActive = now;
+
+    if (clearSessionWarnings) {
+        USSessionTimeout.clearSessionWarnings();
+    } else if (USSessionTimeout.UserWarned) {
+        return;
+    }
+
+    USSessionTimeout.dispatchTimeout(false)
+};
+
+USSessionTimeout.dispatchTimeout = function (override) {
+    var lastUpdate = Date.now() - USSessionTimeout.LastDispatch;
+
+    if (localStorage && (lastUpdate > USSessionTimeout.DispatchDelay || override)) {
+        localStorage.setItem(USSessionTimeout.LAST_UPDATE_KEY, USSessionTimeout.LastTimeActive);
+        USSessionTimeout.LastDispatch = Date.now();
+    }
+}
+
+USSessionTimeout.shutDown = function (timedout) {
+    var location = GlobalVars["RootVD"] + "/logout.aspx";
+    if (timedout)
+        location += "?r=sessiontimeout&location=4";
+    window.location = location;
+};
+
+USSessionTimeout.runDownTime = function () {
+    var elapsedPingTime = Date.now() - USSessionTimeout.LastPingSessionCall;
+    USSessionTimeout.PingTimeRemaining = USSessionTimeout.PingSessionInterval - elapsedPingTime;
+
+    var time_elapsed = Date.now() - USSessionTimeout.LastTimeActive;
+    USSessionTimeout.TimeRemaining = USSessionTimeout.OriginalDuration - time_elapsed;
+
+    if (USSessionTimeout.PingTimeRemaining <= 0) {
+        USSessionTimeout.pingSession(false);
+        USSessionTimeout.LastPingSessionCall = Date.now();
+    }
+
+    if (USSessionTimeout.TimeRemaining <= USSessionTimeout.WarningThreshold) {
+        if (!USSessionTimeout.UserWarned) {
+            USSessionTimeout.checkPartner(() => { USSessionTimeout.clearSessionWarnings() }, () => { USSessionTimeout.warnSessionTimeout() });
+        }
+
+        if (USSessionTimeout.TimeRemaining < 0) {
+            USSessionTimeout.checkPartner(() => { USSessionTimeout.clearSessionWarnings() }, () => { USSessionTimeout.shutDown(true) });
+        }
+    }
+};
+
+USSessionTimeout.warnSessionTimeout = function () {
+    USSessionTimeout.pingSession(false);
+
+    var container = $('<div>').append($('#timeOutDialogContainer').clone()).html();
+
+    function initialize(win) {
+        $('body').trigger('warning.sessiontimeout');
+        var timeoutDialog = win.$('#timeOutDialog');
+        timeoutDialog.modal('show');
+        timeoutDialog.find("#theCountDownDiv").countdown(
+            {
+                until: USSessionTimeout.TimeRemaining / 1000,
+                compact: true,
+                layout: '{mn}:{snn}',
+                description: '',
+                onExpiry: function () { USSessionTimeout.checkPartner(() => { USSessionTimeout.clearSessionWarnings() }, () => { USSessionTimeout.shutDown(true) }); }
+            }
+        );
+    }
+
+    initialize(window);
+
+    WindowManager.executeOnChildrenRecursively(function () {
+        this.$('body').append(container);
+        initialize(this);
+    });
+
+    USSessionTimeout.UserWarned = true;
+};
+
+USSessionTimeout.checkPartner = function (successCallback, failureCallback) {
+    if (USSessionTimeout.partnerCheckStatus()) {
+        return;
+    }
+
+    USSessionTimeout.setPartnerCheckPending();
+
+    var currentExpiration = new Date(Date.now() + USSessionTimeout.TimeRemaining);
+    $.usService("CommonService", "CheckWfdSession", { "proSessionExpiration": currentExpiration.toISOString() }, (response) => {
+        if (!response) {
+            failureCallback();
+            USSessionTimeout.clearPartnerCheckStatus();
+            return;
+        }
+
+        var jsonResponse = tryParseJson(response);
+
+        var partnerExpiration = new Date(jsonResponse.SessionExpirationTime);
+
+        if (partnerExpiration > currentExpiration) {
+            USSessionTimeout.LastTimeActive = partnerExpiration.valueOf() - USSessionTimeout.OriginalDuration;
+            USSessionTimeout.dispatchTimeout(true);
+            if (successCallback) {
+                successCallback();
+            }
+        } else {
+            if (failureCallback) {
+                failureCallback();
+            }
+        }
+
+        USSessionTimeout.clearPartnerCheckStatus();
+    });
+}
+
+function tryParseJson(json) {
+    try {
+        return JSON.parse(json);
+    }
+    catch {
+        return {};
+    }
+}
+
+USSessionTimeout.partnerCheckStatus = function () {
+    var timeStamp = localStorage.getItem(USSessionTimeout.PARTNER_CHECK_KEY);
+
+    if (!timeStamp) return false;
+
+    return (Date.now() - timeStamp) < 50 * 1000;
+}
+
+USSessionTimeout.setPartnerCheckPending = function () {
+    localStorage.setItem(USSessionTimeout.PARTNER_CHECK_KEY, Date.now());
+}
+
+USSessionTimeout.clearPartnerCheckStatus = function () {
+    localStorage.removeItem(USSessionTimeout.PARTNER_CHECK_KEY)
+}
+
+
+// Helper function to forcibly clean up modal backdrop and body state
+// This is needed because modal('hide') may not complete properly in background tabs
+// Only used when BackdropFixEnabled feature flag is true
+USSessionTimeout.forceCleanupModalBackdrop = function (win) {
+    win = win || window;
+    try {
+        // Hide the modal
+        win.$('#timeOutDialog').modal('hide');
+
+        // Forcibly remove modal backdrop (may be left behind in background tabs)
+        win.$('.modal-backdrop').remove();
+
+        // Reset body state that Bootstrap modal sets
+        win.$('body').removeClass('modal-open');
+        win.$('body').css('padding-right', '');
+
+        // Ensure modal is properly hidden
+        win.$('#timeOutDialog').removeClass('in').css('display', 'none');
+        win.$('#timeOutDialog').attr('aria-hidden', 'true');
+    } catch (e) {
+        // Ignore cross-origin or closed window errors
+    }
+};
+
+USSessionTimeout.clearSessionWarnings = function () {
+    if (USSessionTimeout.BackdropFixEnabled) {
+        // Use force cleanup to ensure backdrop is removed even in background tabs
+        USSessionTimeout.forceCleanupModalBackdrop(window);
+        $("#theCountDownDiv").countdown('destroy');
+
+        WindowManager.executeOnChildrenRecursively(function () {
+            USSessionTimeout.forceCleanupModalBackdrop(this);
+            this.$("#theCountDownDiv").countdown('destroy');
+            this.$('#timeOutDialogContainer').remove();
+        });
+    } else {
+        $('#timeOutDialog').modal('hide');
+        $("#theCountDownDiv").countdown('destroy');
+
+        WindowManager.executeOnChildrenRecursively(function () {
+            this.$('#timeOutDialog').modal('hide');
+            this.$("#theCountDownDiv").countdown('destroy');
+            this.$('#timeOutDialogContainer').remove();
+        });
+    }
+
+    USSessionTimeout.pingSession(true);
+
+    USSessionTimeout.UserWarned = false;
+    USSessionTimeout.clearPartnerCheckStatus();
+};
+
+function pmHandler(event) {
+    if (event.data === 'keep-alive') {
+        USSessionTimeout.TimeRemaining = USSessionTimeout.OriginalDuration;
+    }
+}
+
+function checkMigrationStatus(messageType, isParentPage) {
+
+    if (messageType !== 'Upgrade' && messageType !== 'RollBack') {
+        return;
+    }
+
+    if (isParentPage) {
+        localStorage.setItem('migrationStatus', messageType); /*notify DefaultChild*/
+    }
+
+    var modalShownKey = isParentPage ? 'modalShownParent' : 'modalShownChild';
+
+    if (sessionStorage.getItem(modalShownKey) === 'true') {
+        return;
+    }
+    
+    const upgradeMessage = document.getElementById('upgradeMessage');
+    const rollbackMessage = document.getElementById('rollbackMessage');
+    const modalContent = document.getElementById('authenticationModalContent');
+
+    upgradeMessage.style.display = 'none';
+    rollbackMessage.style.display = 'none';
+
+    if (messageType === 'Upgrade') {
+        modalContent.style.display = 'block';
+        upgradeMessage.style.display = 'block';
+    } else if (messageType === 'RollBack') {
+        modalContent.style.display = 'block';
+        rollbackMessage.style.display = 'block';
+    }
+
+    if (isParentPage) {
+        /*logout users from Default only */
+        window.setTimeout(forceLogout, 120 * 1000); /*2 minutes*/
+    }    
+
+    authenticationModalUniversal.present();
+    sessionStorage.setItem(modalShownKey, 'true');
+}
+
+function forceLogout() {
+    var location = GlobalVars["RootVD"] + "/logout.aspx?r=systemupgrade";
+    window.location = location;
+}
+
+window.addEventListener('message', pmHandler, false);
+
+if (window.localStorage) {
+    addEventListener("storage", (event) => {
+        if (event.key === USSessionTimeout.LAST_UPDATE_KEY) {
+            if (USSessionTimeout.UserWarned) {
+                USSessionTimeout.updateTimeout(true);
+            } else {
+                USSessionTimeout.LastTimeActive = new Date(parseInt(localStorage.getItem(USSessionTimeout.LAST_UPDATE_KEY))).getTime();
+            }
+        }
+
+        if (event.key === "shutdown") {
+            USSessionTimeout.shutDown(false);
+        }
+    });
+    localStorage.setItem(USSessionTimeout.LAST_UPDATE_KEY, Date.now());
+}
+
+if (window.sessionStorage) {
+    // Needed for detecting when user duplicates a tab which copies over sessionStorage
+    window.addEventListener('beforeunload', function (event) {
+        sessionStorage.removeItem('tabIDSet');
+    });
+
+    if (sessionStorage.getItem('tabIDSet')) {
+        console.log("Tab duplication detected");
+        sessionStorage.removeItem(USSessionTimeout.TAB_ID_KEY);
+    }
+
+    if (!USSessionTimeout.TabId) {
+        var id = sessionStorage.getItem(USSessionTimeout.TAB_ID_KEY)
+        if (id) {
+            USSessionTimeout.TabId = id;
+        } else {
+            USSessionTimeout.TabId = Date.now();
+            sessionStorage.setItem(USSessionTimeout.TAB_ID_KEY, USSessionTimeout.TabId);
+        }
+    }
+
+    sessionStorage.setItem('tabIDSet', '1');
+}
+
+// Safety net: Clean up stale modal backdrops when tab becomes visible again
+// This handles cases where modal('hide') didn't complete properly in a background tab
+// Only active when BackdropFixEnabled feature flag is true
+document.addEventListener('visibilitychange', function () {
+    if (USSessionTimeout.BackdropFixEnabled && !document.hidden && !USSessionTimeout.UserWarned) {
+        // Tab became visible and user should not be warned - ensure no stale backdrop
+        var hasStaleBackdrop = $('.modal-backdrop').length > 0;
+        var hasStaleModal = $('#timeOutDialog').hasClass('in') || $('#timeOutDialog').css('display') === 'block';
+
+        if (hasStaleBackdrop || hasStaleModal) {
+            USSessionTimeout.forceCleanupModalBackdrop(window);
+        }
+    }
+});

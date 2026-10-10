@@ -1,0 +1,45 @@
+var KeyboardKeyCodes = {
+    'Enter': 13,
+    'Spacebar': 32,
+};
+
+// This should not be a function executing itself but rather something that can be used in different places.
+
+/**
+ * TODO UNITY: Update this
+ *  - the use of event.whichis deprecated. In addition, different keyboard layouts may have different
+ *    Keyboard key codes for ENTER/SPACEBAR, etc.
+ *  - make a singleton class, in typescript, that accomplishes an equivalent to whats found below accounting
+ *    for the point above.
+ */
+a11y = (function () {
+
+    return {
+        keyboardHandler: function (event, eventHandler) {
+            if (event) {
+                switch (event.which) {
+                    case KeyboardKeyCodes.Enter: {
+                        event.stopPropagation;
+                        return eventHandler;
+                    }
+                }
+            }
+            return true;
+        },
+        asButton: function (event, callbackFn) {
+            var keypressed = event.which;
+            if (keypressed == KeyboardKeyCodes.Enter || keypressed == KeyboardKeyCodes.Spacebar) {
+                event.stopPropagation;
+                return callbackFn;
+            }
+            return true;
+        },
+        asLink: function (event, callbackFn) {
+            var keypressed = event.which;
+            if (keypressed == KeyboardKeyCodes.Enter) {
+                return callbackFn;
+            }
+            return true;
+        },
+    }
+})();
